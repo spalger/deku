@@ -186,39 +186,39 @@ function component(spec) {
 'use strict';
 
 function ToObject(val) {
-	if (val == null) {
-		throw new TypeError('Object.assign cannot be called with null or undefined');
-	}
+  if (val == null) {
+    throw new TypeError('Object.assign cannot be called with null or undefined');
+  }
 
-	return Object(val);
+  return Object(val);
 }
 
 module.exports = Object.assign || function (target, source) {
-	var pendingException;
-	var from;
-	var keys;
-	var to = ToObject(target);
+  var pendingException;
+  var from;
+  var keys;
+  var to = ToObject(target);
 
-	for (var s = 1; s < arguments.length; s++) {
-		from = arguments[s];
-		keys = Object.keys(Object(from));
+  for (var s = 1; s < arguments.length; s++) {
+    from = arguments[s];
+    keys = Object.keys(Object(from));
 
-		for (var i = 0; i < keys.length; i++) {
-			try {
-				to[keys[i]] = from[keys[i]];
-			} catch (err) {
-				if (pendingException === undefined) {
-					pendingException = err;
-				}
-			}
-		}
-	}
+    for (var i = 0; i < keys.length; i++) {
+      try {
+        to[keys[i]] = from[keys[i]];
+      } catch (err) {
+        if (pendingException === undefined) {
+          pendingException = err;
+        }
+      }
+    }
+  }
 
-	if (pendingException) {
-		throw pendingException;
-	}
+  if (pendingException) {
+    throw pendingException;
+  }
 
-	return to;
+  return to;
 };
 
 }, {}],
@@ -2959,7 +2959,7 @@ Interactions.prototype.unbind = function(namespace){
 
 Interactions.prototype.resume = function(){
   events.forEach(function(name){
-    this.el.addEventListener(name, this.handle, true);
+    this.el.addEventListener(name, this.handle);
   }, this);
 };
 
@@ -2991,7 +2991,13 @@ Interactions.prototype.remove = function(){
 function handle(event){
   var target = event.target;
   var handlers = this.handlers;
-  var fn = keypath.get(this.handlers, [target.__entity__, target.__path__, event.type]);
+
+  var path = String(target.__path__).split('.');
+  var fn;
+  for(;path.length && !fn; path.pop()) {
+    fn = keypath.get(this.handlers, [target.__entity__, path.join('.'), event.type]);
+  }
+
   if (fn) {
     fn(event);
   }
